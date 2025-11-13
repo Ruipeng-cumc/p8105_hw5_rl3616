@@ -34,3 +34,17 @@ prob_by_n <- results |>
 
 prob_by_n
 ```
+
+```{r}
+ggplot(prob_by_n, aes(x = n, y = prob_dup)) +
+  geom_line() +
+  geom_point() +
+  labs(
+    x = "Group size (n)",
+    y = "P(at least two share a birthday)",
+    title = "Birthday Duplicate Simulation"
+    ) +
+  theme_minimal()
+```  
+As shown in the plot, when the group size is very small, the probability of having a shared birthday is close to zero. As the group size increases, the probability rises rapidly. Around a group size of 25, the rate of increase begins to slow down, and eventually the probability approaches 100%.
+
