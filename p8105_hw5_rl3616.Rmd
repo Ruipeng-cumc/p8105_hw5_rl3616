@@ -5,3 +5,32 @@ date: "`r format(Sys.Date())`"
 output: github_document
 ---
 
+```{r}
+library(tidyverse)
+set.seed(123)
+```
+
+### Problem 1
+
+```{r}
+has_duplicate_birthday <- function(n) {
+  b <- sample(1:365, size = n, replace = TRUE)
+  any(duplicated(b))
+  }
+group_size = 2:50
+n_sim = 10000
+
+results <- map_df(
+  group_size,
+  ~ tibble(
+    n = .x, 
+    dup = replicate(n_sim, has_duplicate_birthday(.x))
+    )
+  )
+
+prob_by_n <- results |>
+  group_by(n) |> 
+  summarise(prob_dup = mean(dup), .groups = "drop")
+
+prob_by_n
+```
