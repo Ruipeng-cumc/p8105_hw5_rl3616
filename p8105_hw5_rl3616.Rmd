@@ -20,7 +20,7 @@ has_duplicate_birthday <- function(n) {
 group_size = 2:50
 n_sim = 10000
 
-results <- map_df(
+birthday_results <- map_df(
   group_size,
   ~ tibble(
     n = .x, 
@@ -28,7 +28,7 @@ results <- map_df(
     )
   )
 
-prob_by_n <- results |>
+prob_by_n <- birthday_results |>
   group_by(n) |> 
   summarise(prob_dup = mean(dup), .groups = "drop")
 
@@ -48,3 +48,31 @@ ggplot(prob_by_n, aes(x = n, y = prob_dup)) +
 ```  
 As shown in the plot, when the group size is very small, the probability of having a shared birthday is close to zero. As the group size increases, the probability rises rapidly. Around a group size of 25, the rate of increase begins to slow down, and eventually the probability approaches 100%.
 
+### Problem 2
+
+```{r}
+n <- 30
+sigma <- 5
+n_sim <- 5000
+mu_vec <- 0:6
+
+sim_one_mu <- function(mu, n = 30, sigma = 5, n_sim = 5000) {
+  
+  map(1:n_sim, ~{
+    x <- rnorm(n, mean = mu, sd = sigma)
+    
+    t_tidy <- broom::tidy(t.test(x, mu = 0))
+    
+    tibble(
+      mu_true = mu,
+      mu_hat = t_tidy$estimate,
+      p_value = t_tidy$p.value
+    )
+  }) |> 
+    list_rbind()
+}
+
+mu_sim_results <- map_df(mu_vec, sim_one_mu)
+
+mu_sim_results
+```
