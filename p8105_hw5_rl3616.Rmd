@@ -148,3 +148,33 @@ Across all samples, the average sample mean (μ̂) is approximately equal to the
 However, if we only consider samples with p < 0.05, only the samples with "larger differences" are retained, while samples with smaller differences are excluded.
 
 This causes the μ̂ of the retained samples to tend to be slightly larger than the true μ, so the blue line will appear on y=x, especially when the true μ is relatively small.
+
+### Problem 3
+```{r}
+homicides <- read.csv("https://raw.githubusercontent.com/washingtonpost/data-homicides/master/homicide-data.csv")
+
+homicides_df <- homicides |> 
+  janitor::clean_names() |>
+  mutate(
+    city_state = str_c(city, ", ", state)
+  ) |> 
+  group_by(city_state) |> 
+  summarise(
+    total = n(),
+    n_unsolved = sum(disposition %in% c("Closed without arrest", "Open/No arrest")),
+    .groups = "drop"
+  )
+```
+
+
+```{r}
+baltimore_homicides <- homicides_df |> 
+  filter(city_state == "Baltimore, MD") 
+
+baltimore_pt <- prop.test(
+    x = baltimore_homicides$n_unsolved,
+    n = baltimore_homicides$total
+  ) |> 
+  broom::tidy() |> 
+  select(estimate, conf.low, conf.high)
+```
