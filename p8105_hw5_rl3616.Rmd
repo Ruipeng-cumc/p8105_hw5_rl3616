@@ -5,9 +5,9 @@ date: "`r format(Sys.Date())`"
 output: github_document
 ---
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(tidyverse)
-set.seed(123)
+set.seed(123) 
 ```
 
 ### Problem 1
@@ -77,7 +77,7 @@ mu_sim_results <- map_df(mu_vec, sim_one_mu)
 mu_sim_results
 ```
 
-#### proportion of times the null was rejected
+#### Proportion of times the null was rejected
 
 ```{r}
 power_by_mu <- mu_sim_results |>
@@ -108,7 +108,7 @@ When μ = 0, H₀ is true, and the rejection rate is approximately 0.05 (which i
 
 The further μ is from 0 (in this case, increasing in the positive direction), the larger the effect size, the easier it is for the t-test to detect differences, and the higher the power until it reach to 1.
 
-#### mu estimate plot
+#### μ estimate plot
 
 ```{r}
 mu_hat_avg <- mu_sim_results |> 
@@ -166,15 +166,44 @@ homicides_df <- homicides |>
   )
 ```
 
-
+#### Prop.test for Baltimore, MD  
 ```{r}
 baltimore_homicides <- homicides_df |> 
   filter(city_state == "Baltimore, MD") 
 
-baltimore_pt <- prop.test(
+baltimore_test <- prop.test(
     x = baltimore_homicides$n_unsolved,
     n = baltimore_homicides$total
   ) |> 
   broom::tidy() |> 
   select(estimate, conf.low, conf.high)
 ```
+
+#### Prop.test for all
+```{r}
+city_test <- homicides_df |> 
+  mutate(
+    prop_test = map2(n_unsolved, total, 
+                     ~ broom::tidy(prop.test(.x, .y)))
+  ) |> 
+  unnest(prop_test) |> 
+  select(city_state, total, n_unsolved, estimate, conf.low, conf.high)
+  
+city_pt <- city_test |> 
+  filter(total >= 10) |> 
+  arrange(estimate) |>
+  mutate(city_state = factor(city_state, levels = city_state)) |>
+  ggplot(aes(x = city_state, y = estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2) +
+  coord_flip() +
+  labs(
+    x = "City",
+    y = "Proportion unsolved (95% CI)",
+    title = "Estimated Proportion of Unsolved Homicides by City"
+  )
+
+city_pt
+
+```   
+Note: Tulsa, AL had only one homicide in the dataset. Because of the extremely small sample size, the corresponding confidence interval spans nearly the entire range and provides little interpretive value. For this reason, I removed Tulsa, AL from the visualization to improve readability.
