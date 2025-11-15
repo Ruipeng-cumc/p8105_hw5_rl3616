@@ -170,6 +170,7 @@ homicides_df <- homicides |>
 ```{r}
 baltimore_homicides <- homicides_df |> 
   filter(city_state == "Baltimore, MD") 
+baltimore_homicides
 
 baltimore_test <- prop.test(
     x = baltimore_homicides$n_unsolved,
@@ -177,10 +178,12 @@ baltimore_test <- prop.test(
   ) |> 
   broom::tidy() |> 
   select(estimate, conf.low, conf.high)
+
+baltimore_test
 ```
 
 #### Prop.test for all
-```{r}
+```{r, fig.width=8, fig.height=8, warning=FALSE}
 city_test <- homicides_df |> 
   mutate(
     prop_test = map2(n_unsolved, total, 
@@ -193,9 +196,9 @@ city_pt <- city_test |>
   filter(total >= 10) |> 
   arrange(estimate) |>
   mutate(city_state = factor(city_state, levels = city_state)) |>
-  ggplot(aes(x = city_state, y = estimate)) +
+  ggplot(aes(x = city_state, y = estimate, color = estimate)) +
   geom_point() +
-  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2) +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.3) +
   coord_flip() +
   labs(
     x = "City",
